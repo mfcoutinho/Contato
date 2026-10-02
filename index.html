@@ -5,6 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#0b0f14">
 
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Marcos Coutinho">
+  <meta property="og:description" content="Gestão de Operações • PMO • Governança • Transformação Digital">
+  <meta property="og:url" content="https://mfcoutinho.github.io/Contato/">
+  <meta property="og:image" content="https://mfcoutinho.github.io/Contato/assets/previews/contato.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+    
+  <!-- Twitter / X -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Marcos Coutinho">
+  <meta name="twitter:description" content="Gestão de Operações • PMO • Governança • Transformação Digital">
+  <meta name="twitter:image" content="https://mfcoutinho.github.io/Contato/assets/previews/contato.jpg">
+  
   <title>Marcos Coutinho | Contato</title>
 
   <style>
@@ -73,24 +88,39 @@
       Transformação Digital
     </p>
 
-    <a class="botao" href="#">
-      Salvar contato
+    <a class="botao" href="marcos-coutinho.vcf">
+      Add contato de Cel.
     </a>
 
-    <a class="botao" href="#">
+    <a class="botao" href="https://www.linkedin.com/in/mfcoutinho/">
       LinkedIn
     </a>
 
-    <a class="botao" href="#">
+    <a class="botao"
+       href="https://wa.me/5521996257146?text=Olá%20Marcos,%20meu%20nome%20é%20">
       WhatsApp
     </a>
 
-    <a class="botao" href="#">
-      Enviar e-mail
-    </a>
+    <button class="botao" onclick="copiarEmail(this)">
+      Copiar e-mail
+    </button>
+    
+    <script>
+      function copiarEmail(botao) {
+        navigator.clipboard.writeText('mfcoutinho@gmail.com').then(() => {
+          const textoOriginal = botao.innerText;
+    
+          botao.innerText = 'E-mail copiado ✓';
+    
+          setTimeout(() => {
+            botao.innerText = textoOriginal;
+          }, 2000);
+        });
+      }
+    </script>
 
-    <a class="botao" href="#">
-      Agendar uma conversa
+    <a class="botao" href="https://calendar.app.google/GNgMzCr4fJtVLNtJA">
+      Agendar reunião
     </a>
 
     <p class="rodape">
