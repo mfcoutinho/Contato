@@ -103,13 +103,15 @@
     .fundo {
       position: absolute;
 
-      inset: 0;
-
       width: 100%;
       height: 100%;
 
+      inset: 0;
+
       object-fit: cover;
-      object-position: center;
+
+      /* desloca o enquadramento para revelar a faixa escura inferior */
+      object-position: center 100%;
 
       z-index: 0;
 
@@ -180,7 +182,7 @@
 
       color: rgba(255, 255, 255, .28);
 
-      font-size: clamp(25px, 4.5vh, 48px);
+      font-size: clamp(45px, 7.2vh, 76px);
 
       font-weight: 400;
     }
@@ -203,10 +205,10 @@
     .personagem {
       position: absolute;
 
-      left: -7%;
-      bottom: 0;
+      left: -27%;
+      bottom: -7%;
 
-      height: 78%;
+      height: 98%;
 
       z-index: 3;
 
@@ -320,21 +322,25 @@
 
     /* BOTÃO PRINCIPAL */
 
-    .botao.destaque {
-      border-color: #009dff;
+    .botao.destaque,
+    .botao:focus-visible,
+    .botao:focus-within {
+      border-color: #00a8ff;
 
       box-shadow:
-        0 0 0 1px rgba(0, 157, 255, .25),
-        0 0 18px rgba(0, 157, 255, .28),
-        inset 0 1px 0 rgba(255, 255, 255, .08);
+        0 0 0 1px rgba(0, 168, 255, .45),
+        0 0 12px rgba(0, 168, 255, .55),
+        0 0 28px rgba(0, 157, 255, .35),
+        inset 0 1px 0 rgba(255, 255, 255, .12);
 
       background:
         linear-gradient(
           100deg,
-          rgba(6, 41, 66, .87),
-          rgba(7, 25, 40, .78)
+          rgba(6, 48, 78, .92),
+          rgba(7, 27, 43, .84)
         );
     }
+
 
 
     /* =========================================================
@@ -465,26 +471,26 @@
     ========================================================= */
 
     .braco {
+    transform: rotate(-14deg);
       position: absolute;
 
-      left: 19%;
-      top: 40.2%;
+      /* braço independente sobre o corpo */
+      left: calc(-18% + 20px);
+      top: calc(41% + 40px);
+
+      /* escala necessária para alcançar o primeiro botão */
+      width: 65%;
+      height: auto;
 
       z-index: 6;
-
-      width: 34%;
 
       pointer-events: none;
       user-select: none;
 
-      transform-origin: left center;
+      transform-origin: 8% 65%;
 
-      animation:
-        entradaBraco
-        900ms
-        cubic-bezier(.2, .8, .2, 1)
-        350ms
-        both;
+      transition:
+        transform 420ms cubic-bezier(.22, .61, .36, 1);
     }
 
     .braco img {
@@ -502,12 +508,12 @@
     .assinatura {
       position: absolute;
 
-      right: 7%;
-      bottom: 8.5%;
+      right: 5%;
+      bottom: 1.5%;
 
       z-index: 7;
 
-      width: 39%;
+      width: 43%;
 
       pointer-events: none;
       user-select: none;
@@ -634,17 +640,7 @@
        Mantém a composição vertical limitada
     ========================================================= */
 
-    @media (min-aspect-ratio: 3 / 2) {
-
-      .pagina {
-        height: min(100svh, 1000px);
-        width: min(
-          600px,
-          calc(min(100svh, 1000px) * .60)
-        );
-      }
-
-    }
+    
 
 
     /* =========================================================
@@ -663,16 +659,19 @@
 
     }
 
-  </style>
+  
+    /* =========================================================
+       GUIA TEMPORÁRIA — LIMITE VISÍVEL DO CELULAR
+       Remover após finalizar o posicionamento.
+    ========================================================= */
+</style>
 </head>
 
 
 <body>
 
   <main class="pagina">
-
-
-    <!-- =====================================================
+<!-- =====================================================
          FUNDO
     ====================================================== -->
 
@@ -729,6 +728,7 @@
 
       <a
         class="botao destaque"
+        data-angulo="-14"
         href="https://calendar.app.google/GNgMzCr4fJtVLNtJA"
         target="_blank"
         rel="noopener noreferrer"
@@ -763,6 +763,7 @@
 
       <a
         class="botao"
+        data-angulo="1"
         href="https://wa.me/5521996257146?text=Olá%20Marcos,%20meu%20nome%20é%20"
         target="_blank"
         rel="noopener noreferrer"
@@ -796,6 +797,7 @@
 
       <a
         class="botao"
+        data-angulo="16"
         href="https://www.linkedin.com/in/mfcoutinho/"
         target="_blank"
         rel="noopener noreferrer"
@@ -829,6 +831,7 @@
 
       <button
         class="botao"
+        data-angulo="31"
         type="button"
         onclick="copiarEmail(this)"
       >
@@ -863,6 +866,7 @@
 
       <a
         class="botao"
+        data-angulo="43"
         href="./marcos-coutinho.vcf"
         download
       >
@@ -927,6 +931,126 @@
 
 
   <script>
+
+
+    const braco = document.querySelector(".braco");
+    const botoes = document.querySelectorAll(".acoes .botao");
+
+    function selecionarBotao(botao) {
+
+      const angulo = botao.dataset.angulo;
+
+      if (angulo === undefined) return;
+
+      botoes.forEach(item => {
+        item.classList.remove("destaque");
+      });
+
+      botao.classList.add("destaque");
+
+      braco.style.transform =
+        `rotate(${angulo}deg)`;
+    }
+
+
+    /* =========================================================
+       ESTADO INICIAL
+       Sempre começa apontando para Agenda
+    ========================================================= */
+
+    const botaoInicial =
+      document.querySelector('.botao[data-angulo="-14"]');
+
+    if (botaoInicial) {
+      selecionarBotao(botaoInicial);
+    }
+
+
+    /* =========================================================
+       CLIQUE / TOQUE
+    ========================================================= */
+
+    botoes.forEach(botao => {
+
+      botao.addEventListener("click", function(evento) {
+
+        selecionarBotao(botao);
+
+        /*
+          Botão de e-mail:
+          mantém o onclick="copiarEmail(this)"
+          e não navega para outra página.
+        */
+
+        if (botao.tagName === "BUTTON") {
+          return;
+        }
+
+
+        const destino =
+          botao.getAttribute("href");
+
+        const download =
+          botao.hasAttribute("download");
+
+        const novaAba =
+          botao.getAttribute("target") === "_blank";
+
+
+        if (!destino) {
+          return;
+        }
+
+
+        /*
+          Interrompe temporariamente a navegação
+          para permitir visualizar o movimento do braço.
+        */
+
+        evento.preventDefault();
+
+
+        setTimeout(() => {
+
+          if (download) {
+
+            const link =
+              document.createElement("a");
+
+            link.href = destino;
+            link.download =
+              botao.getAttribute("download") || "";
+
+            document.body.appendChild(link);
+
+            link.click();
+
+            link.remove();
+
+            return;
+          }
+
+
+          if (novaAba) {
+
+            window.open(
+              destino,
+              "_blank",
+              "noopener,noreferrer"
+            );
+
+          } else {
+
+            window.location.href =
+              destino;
+
+          }
+
+        }, 350);
+
+      });
+
+    });
 
     async function copiarEmail(botao) {
 
@@ -1001,3 +1125,13 @@
 </body>
 
 </html>
+
+<style>
+.phone-guide,
+.mobile-guide,
+.viewport-guide,
+.screen-guide,
+.phone-frame,
+.area-visivel,
+
+</style>
