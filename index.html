@@ -2,6 +2,15 @@
 <html lang="pt-BR">
 
 <head>
+
+    <!-- Favicon MCout -->
+    <link rel="icon" href="img/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+    <link rel="manifest" href="img/site.webmanifest">
+    <meta name="theme-color" content="#07172B">
+
   <meta charset="UTF-8">
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -153,7 +162,7 @@
       position: absolute;
 
       top: 20.5%;
-      left: 43%;
+      left: 32%;
 
       z-index: 2;
 
@@ -166,6 +175,9 @@
       letter-spacing: -.055em;
 
       pointer-events: none;
+
+      perspective: 700px;
+      perspective-origin: center;
 
       animation:
         entradaNome 900ms ease-out both;
@@ -180,11 +192,14 @@
     .nome .primeiro {
       margin-left: 0;
 
-      color: rgba(255, 255, 255, .28);
+      color: rgba(255, 255, 255, .55);
 
-      font-size: clamp(45px, 7.2vh, 76px);
+      font-size: clamp(58px, 9.2vh, 98px);
 
       font-weight: 400;
+
+      transform-origin: left center;
+      transform: perspective(700px) rotateY(-18deg) skewY(-2deg);
     }
 
     .nome .sobrenome {
@@ -192,7 +207,7 @@
 
       color: rgba(0, 126, 218, .67);
 
-      font-size: clamp(35px, 5.8vh, 62px);
+      font-size: clamp(49px, 8.6vh, 81px);
 
       font-weight: 700;
     }
@@ -533,6 +548,8 @@
 
       width: 100%;
       height: auto;
+
+      transform: rotate(-10deg);
     }
 
 
@@ -664,7 +681,87 @@
        GUIA TEMPORÁRIA — LIMITE VISÍVEL DO CELULAR
        Remover após finalizar o posicionamento.
     ========================================================= */
+
+    /* =========================================================
+       PERSPECTIVA DO NOME
+    ========================================================= */
+
+    .nome .primeiro,
+    .nome .sobrenome {
+      transform-origin: left center;
+      transform: perspective(450px) rotateY(-35deg) skewY(-3deg);
+      backface-visibility: visible;
+    }
+
+    .nome .primeiro {
+      opacity: .55;
+    }
+
+    .nome .sobrenome {
+      opacity: .72;
+    }
+
+
+    /* Ajuste horizontal exclusivo de Coutinho */
+    .nome .sobrenome {
+      position: relative;
+      left: -35px;
+    }
 </style>
+
+<style id="segurar-botao-css">
+
+/* As duas poses usam exatamente o mesmo espaço do braço atual */
+
+.braco {
+  overflow: visible;
+}
+
+.braco-apontando {
+  position: relative;
+  z-index: 2;
+}
+
+.braco-fechado {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+
+  opacity: 0;
+
+  pointer-events: none;
+
+  transform-origin: 8% 65%;
+}
+
+
+/*
+  Enquanto Agenda está sendo "pego", desligamos apenas
+  as transições CSS que poderiam disputar o transform.
+*/
+
+.botao.segurando {
+  transition: none !important;
+
+  will-change: transform;
+}
+
+
+/*
+  O braço continua acima do botão.
+  Portanto a mão fechada pode ocultar parte do botão.
+*/
+
+.braco {
+  z-index: 6;
+}
+
+.acoes {
+  z-index: 5;
+}
+
+</style>
+
 </head>
 
 
@@ -905,7 +1002,15 @@
     <div class="braco">
 
       <img
+        class="braco-apontando"
         src="./img/Lnkt_mfc_braco.png"
+        alt=""
+        aria-hidden="true"
+      >
+
+      <img
+        class="braco-fechado"
+        src="./img/Lnkt_mfc_braco_mao_fechada.png"
         alt=""
         aria-hidden="true"
       >
@@ -970,16 +1075,292 @@
        CLIQUE / TOQUE
     ========================================================= */
 
+    const bracoApontando =
+      document.querySelector(".braco-apontando");
+
+    const bracoFechado =
+      document.querySelector(".braco-fechado");
+
+    let animandoAgenda = false;
+
+
+    function esperar(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+
+    async function animarAgenda(botao) {
+
+      if (animandoAgenda) return;
+
+      animandoAgenda = true;
+
+      const destino = botao.getAttribute("href");
+
+
+      /*
+        --------------------------------------------------------
+        GEOMETRIA
+        --------------------------------------------------------
+
+        A referência NÃO é o meio do braço.
+
+        O destino é calculado usando a EXTREMIDADE DIREITA
+        da imagem da mão fechada.
+
+        Como a mão está no final direito do PNG, usamos
+        aproximadamente 91% da largura do braço.
+
+        O botão encosta nessa região, em vez de viajar até
+        o centro da imagem.
+      */
+
+
+      const rBotao =
+        botao.getBoundingClientRect();
+
+      const rMao =
+        bracoFechado.getBoundingClientRect();
+
+
+      /*
+        Ponto aproximado entre palma/dedos da mão fechada.
+
+        X = 91% da largura da imagem.
+        Y = 47% da altura.
+
+        Estes são os dois valores que ajustaremos depois
+        olhando a posição real na tela.
+      */
+
+      const maoX =
+        rMao.left + (rMao.width * 0.91);
+
+      const maoY =
+        rMao.top + (rMao.height * 0.47);
+
+
+      /*
+        Queremos que a BORDA ESQUERDA do botão chegue
+        à região da mão.
+
+        Não centralizamos o botão sobre a mão.
+      */
+
+      const botaoX =
+        rBotao.left;
+
+      const botaoY =
+        rBotao.top + (rBotao.height * 0.50);
+
+
+      const dx =
+        maoX - botaoX - (rBotao.width * 0.08);
+
+      const dy =
+        maoY - botaoY;
+
+
+      botao.classList.add("segurando");
+
+
+      /*
+        --------------------------------------------------------
+        ETAPA 1 — BOTÃO VEM ATÉ A MÃO
+        --------------------------------------------------------
+      */
+
+      const movimento = botao.animate(
+
+        [
+          {
+            transform:
+              "translate3d(0,0,0) rotate(0deg) scale(1)"
+          },
+
+          {
+            offset: 0.72,
+
+            transform:
+              `translate3d(${dx * .92}px, ${dy * .92}px, 0)
+               rotate(-8deg)
+               scale(1.015)`
+          },
+
+          {
+            transform:
+              `translate3d(${dx}px, ${dy}px, 0)
+               rotate(-11deg)
+               scale(1.02)`
+          }
+        ],
+
+        {
+          duration: 720,
+
+          easing:
+            "cubic-bezier(.22,.72,.20,1)",
+
+          fill: "forwards"
+        }
+
+      );
+
+
+      /*
+        --------------------------------------------------------
+        ETAPA 2 — MÃO COMEÇA A FECHAR ANTES DA CHEGADA
+        --------------------------------------------------------
+
+        As duas poses ficam sobrepostas durante 180 ms.
+        Isso mascara a troca.
+      */
+
+      await esperar(500);
+
+
+      bracoApontando.style.transition =
+        "opacity 190ms ease-out";
+
+      bracoFechado.style.transition =
+        "opacity 190ms ease-in";
+
+
+      bracoApontando.style.opacity = "0";
+      bracoFechado.style.opacity = "1";
+
+
+      await movimento.finished;
+
+
+      /*
+        --------------------------------------------------------
+        ETAPA 3 — PEQUENA ACOMODAÇÃO
+        --------------------------------------------------------
+
+        Movimento mínimo para produzir sensação de contato.
+      */
+
+      const contato = botao.animate(
+
+        [
+          {
+            transform:
+              `translate3d(${dx}px, ${dy}px, 0)
+               rotate(-11deg)
+               scale(1.02)`
+          },
+
+          {
+            transform:
+              `translate3d(${dx - 3}px, ${dy + 2}px, 0)
+               rotate(-9deg)
+               scale(1.015)`
+          }
+        ],
+
+        {
+          duration: 170,
+
+          easing:
+            "cubic-bezier(.34,1.35,.64,1)",
+
+          fill: "forwards"
+        }
+
+      );
+
+
+      await contato.finished;
+
+
+      /*
+        Pequena pausa: mão fechada + botão.
+      */
+
+      await esperar(260);
+
+
+      /*
+        --------------------------------------------------------
+        EXECUTA A AÇÃO
+        --------------------------------------------------------
+
+        Não devolvemos o botão porque o clique já pediu
+        explicitamente para abrir Agenda.
+      */
+
+
+      if (destino) {
+
+        window.open(
+          destino,
+          "_blank",
+          "noopener,noreferrer"
+        );
+
+      }
+
+
+      /*
+        --------------------------------------------------------
+        RESTAURA A INTERFACE ORIGINAL
+        --------------------------------------------------------
+
+        IMPORTANTE:
+        não cancelamos a animação CSS de entrada do botão.
+        Removemos SOMENTE as animações criadas acima.
+      */
+
+
+      movimento.cancel();
+      contato.cancel();
+
+
+      botao.style.transform = "";
+
+      bracoApontando.style.transition = "";
+      bracoFechado.style.transition = "";
+
+      bracoApontando.style.opacity = "";
+      bracoFechado.style.opacity = "";
+
+      botao.classList.remove("segurando");
+
+      animandoAgenda = false;
+
+    }
+
+
+
+    /* =========================================================
+       CLIQUE / TOQUE
+       ========================================================= */
+
     botoes.forEach(botao => {
 
       botao.addEventListener("click", function(evento) {
 
         selecionarBotao(botao);
 
+
         /*
-          Botão de e-mail:
-          mantém o onclick="copiarEmail(this)"
-          e não navega para outra página.
+          AGENDA:
+          executa o gesto completo antes de abrir.
+        */
+
+        if (botao.dataset.angulo === "-14") {
+
+          evento.preventDefault();
+
+          animarAgenda(botao);
+
+          return;
+        }
+
+
+        /*
+          E-MAIL mantém exatamente a lógica existente.
         */
 
         if (botao.tagName === "BUTTON") {
@@ -1002,11 +1383,6 @@
         }
 
 
-        /*
-          Interrompe temporariamente a navegação
-          para permitir visualizar o movimento do braço.
-        */
-
         evento.preventDefault();
 
 
@@ -1018,6 +1394,7 @@
               document.createElement("a");
 
             link.href = destino;
+
             link.download =
               botao.getAttribute("download") || "";
 
@@ -1051,6 +1428,7 @@
       });
 
     });
+
 
     async function copiarEmail(botao) {
 
